@@ -1,0 +1,30 @@
+.scoreboard {
+    display: grid;
+    grid-template:
+        "timer timer"
+        "sets-counter sets-counter"
+        "team1 team2"
+    ;
+    gap: 10px;
+    padding: 10px;
+}
+
+.timer {
+    grid-area: timer;
+    font-size: 2em;
+    text-align: center;
+}
+
+.sets-counter {
+    grid-area: sets-counter;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+.team1 {
+    grid-area: team1;
+}
+
+.team2 {
+    grid-area: team2;
+}
