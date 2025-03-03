@@ -1,43 +1,108 @@
 import Timer from './components/Timer'
-import { useTimer } from './hooks/useTimer'
 import SetsCounter from './components/SetsCounter'
-import { useSetsCounter } from './hooks/useSetsCounter'
 import TeamScore from './components/TeamScore'
-import { useTeamScore } from './hooks/useTeamScore'
-
-interface ScoreboardProps {
-  nSets: number;
-  timeBySet: number;
-}
+import { ScoreBoardState } from './hooks/useScoreBoard'
+import './Scoreboard.css'
 
 const defaultStyles = {
   container: {
     display: 'grid',
+    width: '100%',
+    height: '100%',
+
     gridTemplateAreas: `
       "timer timer"
       "sets sets"
       "teamA teamB"
     `,
-    fontFamily: 'monospace'
-  }
+    gridTemplateColumns: '1fr 1fr',
+    gridTemplateRows: '3fr 1fr 3fr',
+
+    fontFamily: 'Quantico',
+  },
+
+  timer: {
+    gridArea: 'timer',
+
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+
+    fontSize: 'min(20vw, 30vh)',
+       
+    backgroundColor: 'rgba(1, 33, 6, 0.5)',
+  },
+
+  sets: {
+    gridArea: 'sets',
+
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    padding: '3vh 20vh',
+    gap: '1vh',
+
+    backgroundColor: 'rgba(72, 37, 168, 0.5)',
+  },
+
+  setsSegment: {
+    transform: 'skew(-20deg)'
+  },
+
+  teamA: {
+    gridArea: 'teamA',
+
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    overflow: 'hidden',
+    fontSize: 'min(20vw, 30vh)',
+
+    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+  },
+
+  teamB: {
+    gridArea: 'teamB',
+
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    overflow: 'hidden',
+    fontSize: 'min(20vw, 30vh)',
+
+    backgroundColor: 'rgba(0, 0, 255, 0.5)',
+  },
 };
 
-function Scoreboard({ nSets, timeBySet }: ScoreboardProps) {
-  const { time, controls: timerControls } = useTimer(timeBySet);
-  const { currentSet, controls: setControls } = useSetsCounter(nSets);
-  const teamA = useTeamScore();
-  const teamB = useTeamScore();
-
+function Scoreboard(state: ScoreBoardState) {
   return (
     <div style={defaultStyles.container}>
-      <span style={{gridArea: 'timer'}}><Timer time={time} /></span>
+      <Timer
+        time={state.time}
+        style={defaultStyles.timer}
+      />
       <SetsCounter
-        currentSet={currentSet}
-        totalSets={nSets}
-        style={{gridArea: 'sets', background: '#f0f0f0'}}
-       />
-      <span style={{gridArea: 'teamA'}}><TeamScore teamName="Home" score={teamA.score} fouls={teamA.fouls} align='left'/></span>
-      <span style={{gridArea: 'teamB'}}><TeamScore teamName="Away" score={teamB.score} fouls={teamB.fouls} align='right' /></span>
+        currentSet={state.currentSet}
+        totalSets={state.maxSets}
+        style={defaultStyles.sets}
+        segmentStyle={defaultStyles.setsSegment}
+      />
+      <TeamScore
+        teamName="Home"
+        score={state.teamA.score}
+        fouls={state.teamA.fouls}
+        align='left'
+        style={defaultStyles.teamA}
+      />
+      <TeamScore
+        teamName="Away"
+        score={state.teamB.score}
+        fouls={state.teamB.fouls}
+        align='right'
+        style={defaultStyles.teamB}
+      />
     </div>
   );
 }

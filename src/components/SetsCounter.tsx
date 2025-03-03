@@ -3,19 +3,20 @@ interface SetsCounterProps {
   totalSets: number;
   style?: React.CSSProperties;
   segmentStyle?: React.CSSProperties;
+  activeSegmentStyle?: React.CSSProperties;
 }
 
 const defaultStyles = {
   container: {
     display: 'flex',
-    gap: '4px',
-    padding: '8px'
   },
   segment: {
-    width: '20px',
-    height: '20px',
-    backgroundColor: '#ddd',
-    borderRadius: '50%'
+    maxWidth: '20%',
+    maxhHeight: '100%',
+    height: '100%',
+    width: '100px',
+    backgroundColor: 'gray',
+
   },
   activeSegment: {
     backgroundColor: '#4CAF50'
@@ -23,10 +24,11 @@ const defaultStyles = {
 };
 
 function SetsCounter({ 
-  currentSet, 
-  totalSets, 
-  style, 
-  segmentStyle 
+  currentSet,
+  totalSets,
+  style,
+  segmentStyle,
+  activeSegmentStyle
 }: SetsCounterProps) {
   return (
     <div style={{ ...defaultStyles.container, ...style }}>
@@ -35,8 +37,8 @@ function SetsCounter({
           key={index}
           style={{
             ...defaultStyles.segment,
-            ...(index < currentSet && defaultStyles.activeSegment),
-            ...segmentStyle
+            ...segmentStyle,
+            ...(index < currentSet ? { ...defaultStyles.activeSegment, ...activeSegmentStyle } : {}),
           }}
         />
       ))}
