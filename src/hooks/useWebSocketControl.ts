@@ -3,7 +3,7 @@ import { ScoreBoardControls } from './useScoreBoard';
 
 // Command types for our WebSocket messages
 export type WebSocketCommand = 
-  | { type: 'timer', action: 'pause' | 'resume' | 'reset' | 'stop' }
+  | { type: 'timer', action: 'pause' | 'resume' | 'reset' | 'stop' | 'addTime', value: number }
   | { type: 'sets', action: 'advance' | 'decrement' | 'reset' }
   | { type: 'team', team: 'A' | 'B', action: 'addPoints' | 'subtractPoints' | 'addFoul' | 'removeFoul', value?: number };
 
@@ -23,6 +23,7 @@ export function useWebSocketControl(controls: ScoreBoardControls, url: string = 
         switch (command.type) {
           case 'timer':
             switch (command.action) {
+              case 'addTime': controls.timerControls.addTime(command.value); break;
               case 'pause': controls.timerControls.pause(); break;
               case 'resume': controls.timerControls.resume(); break;
               case 'reset': controls.timerControls.reset(); break;
