@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.IO.Ports;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
@@ -11,6 +12,7 @@ class Program
 {
     // Store the active WebSocket connection
     private static WebSocket _activeWebSocket;
+    private static SerialPort _btLink;
     
     static async Task Main()
     {
@@ -20,8 +22,12 @@ class Program
         Console.WriteLine("WebSocket server started on http://localhost:8080/");
         Console.WriteLine("Waiting for connections...");
         
+        _btLink = new SerialPort("COM8", 9600);
+        _btLink.Open();
+
         // Start keyboard input listener in a separate task
         Task keyboardTask = Task.Run(() => HandleKeyboardInput());
+        Task bluetoothTask = Task.Run(() => HandleBluetoothInput());
 
         while (true)
         {
@@ -168,85 +174,26 @@ class Program
             if (Console.KeyAvailable)
             {
                 var key = Console.ReadKey(true);
-                string command = null;
-                
-                switch (key.Key)
+
+                string command = key.Key switch
                 {
-                    case ConsoleKey.P:
-                        command = JsonSerializer.Serialize(new { type = "timer", action = "pause" });
-                        Console.WriteLine("Command: Pause timer");
-                        break;
-                        
-                    case ConsoleKey.R:
-                        command = JsonSerializer.Serialize(new { type = "timer", action = "resume" });
-                        Console.WriteLine("Command: Resume timer");
-                        break;
-                        
-                    case ConsoleKey.S:
-                        command = JsonSerializer.Serialize(new { type = "timer", action = "stop" });
-                        Console.WriteLine("Command: Stop timer");
-                        break;
-                        
-                    case ConsoleKey.X:
-                        command = JsonSerializer.Serialize(new { type = "timer", action = "reset" });
-                        Console.WriteLine("Command: Reset timer");
-                        break;
-
-                    case ConsoleKey.OemPlus:
-                        command = JsonSerializer.Serialize(new { type = "timer", action = "addTime", value = 10 });
-                        Console.WriteLine("Command: Increment timer");
-                        break;
-                        
-                    case ConsoleKey.A:
-                        command = JsonSerializer.Serialize(new { type = "sets", action = "advance" });
-                        Console.WriteLine("Command: Advance set");
-                        break;
-                        
-                    case ConsoleKey.D:
-                        command = JsonSerializer.Serialize(new { type = "sets", action = "decrement" });
-                        Console.WriteLine("Command: Decrement set");
-                        break;
-                        
-                    case ConsoleKey.D1:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "A", action = "addPoints", value = 1 });
-                        Console.WriteLine("Command: Add point to Team A");
-                        break;
-
-                    case ConsoleKey.D3:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "A", action = "subtractPoints", value = 1 });
-                        Console.WriteLine("Command: Remove point from Team A");
-                        break;
-                        
-                    case ConsoleKey.D2:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "B", action = "addPoints", value = 1 });
-                        Console.WriteLine("Command: Add point to Team B");
-                        break;
-
-                    case ConsoleKey.D4:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "B", action = "subtractPoints", value = 1 });
-                        Console.WriteLine("Command: Remove point from Team B");
-                        break;
-                        
-                    case ConsoleKey.F1:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "A", action = "addFoul" });
-                        Console.WriteLine("Command: Add foul to Team A");
-                        break;
-
-                    case ConsoleKey.F3:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "A", action = "removeFoul" });
-                        Console.WriteLine("Command: Remove foul from Team A");
-                        break;
-                        
-                    case ConsoleKey.F2:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "B", action = "addFoul" });
-                        Console.WriteLine("Command: Add foul to Team B");
-                        break;
-
-                    case ConsoleKey.F4:
-                        command = JsonSerializer.Serialize(new { type = "team", team = "B", action = "removeFoul" });
-                        Console.WriteLine("Command: Remove foul from Team B");
-                        break;
-                }
+                    ConsoleKey.P => JsonSerializer.Serialize(new { type = "timer", action = "pause" }),
+                    ConsoleKey.R => JsonSerializer.Serialize(new { type = "timer", action = "resume" }),
+                    ConsoleKey.S => JsonSerializer.Serialize(new { type = "timer", action = "stop" }),
+                    ConsoleKey.X => JsonSerializer.Serialize(new { type = "timer", action = "reset" }),
+                    ConsoleKey.OemPlus => JsonSerializer.Serialize(new { type = "timer", action = "addTime", value = 10 }),
+                    ConsoleKey.A => JsonSerializer.Serialize(new { type = "sets", action = "advance" }),
+                    ConsoleKey.D => JsonSerializer.Serialize(new { type = "sets", action = "decrement" }),
+                    ConsoleKey.D1 => JsonSerializer.Serialize(new { type = "team", team = "A", action = "addPoints", value = 1 }),
+                    ConsoleKey.D3 => JsonSerializer.Serialize(new { type = "team", team = "A", action = "subtractPoints", value = 1 }),
+                    ConsoleKey.D2 => JsonSerializer.Serialize(new { type = "team", team = "B", action = "addPoints", value = 1 }),
+                    ConsoleKey.D4 => JsonSerializer.Serialize(new { type = "team", team = "B", action = "subtractPoints", value = 1 }),
+                    ConsoleKey.F1 => JsonSerializer.Serialize(new { type = "team", team = "A", action = "addFoul" }),
+                    ConsoleKey.F3 => JsonSerializer.Serialize(new { type = "team", team = "A", action = "removeFoul" }),
+                    ConsoleKey.F2 => JsonSerializer.Serialize(new { type = "team", team = "B", action = "addFoul" }),
+                    ConsoleKey.F4 => JsonSerializer.Serialize(new { type = "team", team = "B", action = "removeFoul" }),
+                    _ => null
+                };
                 
                 if (command != null && _activeWebSocket != null)
                 {
@@ -256,6 +203,38 @@ class Program
             
             // Small delay to prevent high CPU usage
             await Task.Delay(50);
+        }
+
+    }
+
+    static async Task HandleBluetoothInput()
+    {
+        while (true)
+        {
+            string key = _btLink.ReadLine().Trim();
+            string command = key switch
+            {
+                "A" => JsonSerializer.Serialize(new { type = "timer", action = "pause" }),
+                "B" => JsonSerializer.Serialize(new { type = "timer", action = "resume" }),
+                "C" => JsonSerializer.Serialize(new { type = "timer", action = "stop" }),
+                "D" => JsonSerializer.Serialize(new { type = "timer", action = "reset" }),
+                "3" => JsonSerializer.Serialize(new { type = "sets", action = "advance" }),
+                "6" => JsonSerializer.Serialize(new { type = "sets", action = "decrement" }),
+                "1" => JsonSerializer.Serialize(new { type = "team", team = "A", action = "addPoints", value = 1 }),
+                "4" => JsonSerializer.Serialize(new { type = "team", team = "A", action = "subtractPoints", value = 1 }),
+                "2" => JsonSerializer.Serialize(new { type = "team", team = "B", action = "addPoints", value = 1 }),
+                "5" => JsonSerializer.Serialize(new { type = "team", team = "B", action = "subtractPoints", value = 1 }),
+                "7" => JsonSerializer.Serialize(new { type = "team", team = "A", action = "addFoul" }),
+                "*" => JsonSerializer.Serialize(new { type = "team", team = "A", action = "removeFoul" }),
+                "8" => JsonSerializer.Serialize(new { type = "team", team = "B", action = "addFoul" }),
+                "0" => JsonSerializer.Serialize(new { type = "team", team = "B", action = "removeFoul" }),
+                _ => null
+            };
+            
+            if (command != null && _activeWebSocket != null)
+            {
+                await SendCommand(_activeWebSocket, command);
+            }
         }
     }
 }

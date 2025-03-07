@@ -19,6 +19,7 @@ const defaultStyles = {
     gridTemplateRows: '3fr 1fr 3fr',
 
     fontFamily: 'Quantico',
+    color: 'white',
   },
 
   timer: {
@@ -30,8 +31,8 @@ const defaultStyles = {
     overflow: 'hidden',
 
     fontSize: 'min(20vw, 30vh)',
-       
-    backgroundColor: 'rgba(1, 33, 6, 0.5)',
+    color: 'yellow',
+    textShadow: '0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px yellow, 0 0 82px yellow, 0 0 92px yellow',
   },
 
   sets: {
@@ -44,7 +45,7 @@ const defaultStyles = {
     padding: '3vh 20vh',
     gap: '1vh',
 
-    backgroundColor: 'rgba(72, 37, 168, 0.5)',
+    //backgroundColor: 'rgba(72, 37, 168, 0.5)',
   },
 
   setsSegment: {
@@ -60,7 +61,7 @@ const defaultStyles = {
     overflow: 'hidden',
     fontSize: 'min(20vw, 30vh)',
 
-    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+    //backgroundColor: 'rgba(255, 0, 0, 0.5)',
   },
 
   teamB: {
@@ -72,7 +73,7 @@ const defaultStyles = {
     overflow: 'hidden',
     fontSize: 'min(20vw, 30vh)',
 
-    backgroundColor: 'rgba(0, 0, 255, 0.5)',
+    //backgroundColor: 'rgba(0, 0, 255, 0.5)',
   },
 };
 
